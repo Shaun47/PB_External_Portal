@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 import requests
 import json
-
+from django.conf import settings
 from django.shortcuts import render, redirect
 
 api_hostname = '103.251.120.243'
@@ -107,18 +107,22 @@ def login(request):
     if request.method == 'POST':
         username = request.POST.get('loginID').strip()
         password = request.POST.get('password').strip()
-        customerID = request.POST.get('CustomrID').strip()
+        customerID = request.POST.get('CustomerID').strip()
 
         request.session['loginID'] = username
         request.session['password'] = password
-        request.session['CustomrID'] = customerID
+        request.session['CustomerID'] = customerID
 
-    credentials, customerDetail = getCredentials(request.session['CustomrID'])
-    if credentials[0] == request.session['loginID'] and credentials[1] == request.session['password']:
-        authenticated_var = True
-        return render(request, 'customerPortal/index.html', {
-            'detail': customerDetail,
-        })
+    paymentID, token = getApiCredentials()
+    if 'CustomerID' in request.session:
+        credentials, customerDetail = getCredentials(request.session['CustomerID'])
+        if credentials[0] == request.session['loginID'] and credentials[1] == request.session['password']:
+            authenticated_var = True
+            return render(request, 'customerPortal/index.html', {
+                'detail': customerDetail,
+                'paymentID': paymentID,
+                'token': token,
+            })
     else:
         # request.user.is_authenticated = False
         return render(request, 'error/noUser.html', {
@@ -147,3 +151,44 @@ def logout(request):
 
 def downloadXdr(request):
     return HttpResponse("download xdr")
+
+
+def getApiCredentials():
+    url = "https://checkout.sandbox.bka.sh/v1.2.0-beta/checkout/token/grant"
+
+    payload = {
+        "app_key": "5nej5keguopj928ekcj3dne8p",
+        "app_secret": "1honf6u1c56mqcivtc9ffl960slp4v2756jle5925nbooa46ch62"
+    }
+    headers = {
+        "Accept": "application/json",
+        "username": "testdemo",
+        "password": "test%#de23@msdao",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.request("POST", url, json=payload, headers=headers)
+    data = response.json()
+    token = data['id_token']
+
+    # payment create
+    url = "https://checkout.sandbox.bka.sh/v1.2.0-beta/checkout/payment/create"
+
+    payload = {
+        "amount": "90",
+        "currency": "BDT",
+        "intent": "sale",
+        "merchantInvoiceNumber": "202098957723"
+    }
+    headers = {
+        "Accept": "application/json",
+        "X-APP-Key": "5nej5keguopj928ekcj3dne8p",
+        "Content-Type": "application/json",
+        "Authorization": token
+    }
+
+    response = requests.request("POST", url, json=payload, headers=headers)
+    data = response.json()
+    paymentID = data['paymentID']
+
+    return paymentID, token

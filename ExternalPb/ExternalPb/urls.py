@@ -23,5 +23,5 @@ urlpatterns = [
     path('home/', login, name='home'),
     path('payment/', makePayment, name='payment'),
     path('logout/', logout, name='logout'),
-    path('download-xdr/', downloadXdr, name='downloadXDR')
+    path('download-xdr/', downloadXdr, name='downloadXDR'),
 ]

@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'customerPortal',
 ]
 
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
