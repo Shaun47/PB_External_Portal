@@ -192,3 +192,25 @@ def getApiCredentials():
     paymentID = data['paymentID']
 
     return paymentID, token
+
+
+def paymentMethod(request):
+    if request.method == 'POST':
+        post_text = request.POST.get('the_post')
+        url = "https://checkout.sandbox.bka.sh/v1.2.0-beta/checkout/token/grant"
+
+        payload = {
+            "app_key": "5nej5keguopj928ekcj3dne8p",
+            "app_secret": "1honf6u1c56mqcivtc9ffl960slp4v2756jle5925nbooa46ch62"
+        }
+        headers = {
+            "Accept": "application/json",
+            "username": "testdemo",
+            "password": "test%#de23@msdao",
+            "Content-Type": "application/json"
+        }
+
+        response = requests.request("POST", url, json=payload, headers=headers)
+        data = response.json()
+        token = data['id_token']
+        return HttpResponse(post_text)
