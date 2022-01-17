@@ -69,6 +69,11 @@ def getCredentials(customerID):
 
 
 def makePayment(request):
+    global authenticated_var
+
+    if authenticated_var != True:
+        return redirect('login')
+
     if request.method == 'POST':
         amount = request.POST.get('amount').strip()
         customerID = request.POST.get('customerID').strip()
@@ -146,7 +151,7 @@ def logout(request):
 
     del request.session['loginID']
     del request.session['password']
-    del request.session['CustomrID']
+    del request.session['CustomerID']
 
     return HttpResponse("logged out!")
 
@@ -247,13 +252,13 @@ def paymentCreate(request):
 
 
 def executePayment(request):
-    url = "https://checkout.sandbox.bka.sh/v1.2.0-beta/checkout/payment/execute?paymentID=" + paymentID
+    url = "https://checkout.sandbox.bka.sh/v1.2.0-beta/checkout/payment/execute/" + paymentID
 
     headers = {
         "Accept": "application/json",
         "X-APP-Key": "5nej5keguopj928ekcj3dne8p",
         "Content-Type": "application/json",
-        "Authorization": token
+        "Authorization": json.dumps(token)
     }
 
     response = requests.request("POST", url, headers=headers)

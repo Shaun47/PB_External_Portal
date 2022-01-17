@@ -83,8 +83,12 @@
 </form>
 
 
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script type="text/javascript">
+
+
+
 
 
     var accessToken='';
@@ -101,7 +105,6 @@
              },
             success: function (data) {
                 accessToken=JSON.stringify(data);
-                console.log(data);
             },
 			error: function(){
 						console.log('error');
@@ -109,16 +112,22 @@
             }
         });
 
+
+            var headers = {
+                "Accept": "application/json",
+                "X-APP-Key": "5nej5keguopj928ekcj3dne8p",
+                "Content-Type": "application/json",
+                "Authorization": accessToken
+            };
+
+
         var paymentRequest;
-        paymentRequest = { amount:'900',intent:'sale'};
-		console.log(JSON.stringify(paymentRequest));
+        paymentRequest = { amount:'90',intent:'sale'};
 
         bKash.init({
             paymentMode: 'checkout',
             paymentRequest: paymentRequest,
             createRequest: function(request){
-                console.log('=> createRequest (request) :: ');
-                console.log(request);
 
                 $.ajax({
                     url: "/create-payment/",
@@ -129,9 +138,9 @@
                         console.log('data ::=>');
 
                         var obj = JSON.parse(data);
-                        console.log(obj);
                         if(data && obj.paymentID != null){
                             paymentID = obj.paymentID;
+                            console.log(paymentID);
                             bKash.create().onSuccess(obj);
                         }
                         else {
@@ -147,20 +156,19 @@
             },
 
             executeRequestOnAuthorization: function(){
+            console.log(paymentID);
                 console.log('=> executeRequestOnAuthorization');
                 $.ajax({
-                    url: paymentConfig.executeCheckoutURL+"?paymentID="+paymentID,
+                    url: '/execute-payment/',
                     type: 'GET',
-                    contentType:'application/json',
+                    contentType: 'application/json',
+                    dataType: "jsonp",
                     success: function(data){
-                        console.log('got data from execute  ..');
-                        console.log('data ::=>');
-                        console.log(JSON.stringify(data));
 
                         data = JSON.parse(data);
                         if(data && data.paymentID != null){
                             alert('[SUCCESS] data : ' + JSON.stringify(data));
-                            window.location.href = "success.html";
+                           console.log(data);
                         }
                         else {
                             bKash.execute().onError();
