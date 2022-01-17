@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from .views import login,makePayment,loginPage,logout, downloadXdr, paymentMethod
+from .views import login,makePayment,loginPage,logout, downloadXdr, paymentMethod, paymentCreate, executePayment
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +25,6 @@ urlpatterns = [
     path('logout/', logout, name='logout'),
     path('download-xdr/', downloadXdr, name='downloadXDR'),
     path('make-payment/', paymentMethod, name="make-payment"),
+    path('create-payment/', paymentCreate, name="create-payment"),
+    path('execute-payment/', executePayment, name="execute-payment"),
 ]

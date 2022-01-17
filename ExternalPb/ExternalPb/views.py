@@ -7,6 +7,8 @@ from django.shortcuts import render, redirect
 api_hostname = '103.251.120.243'
 api_base = 'https://%s/rest/' % api_hostname
 authenticated_var = False
+token = ''
+paymentID = ''
 
 
 def getSession(customerID):
@@ -194,23 +196,66 @@ def getApiCredentials():
     return paymentID, token
 
 
+def getToken():
+    url = "https://checkout.sandbox.bka.sh/v1.2.0-beta/checkout/token/grant"
+
+    payload = {
+        "app_key": "5nej5keguopj928ekcj3dne8p",
+        "app_secret": "1honf6u1c56mqcivtc9ffl960slp4v2756jle5925nbooa46ch62"
+    }
+    headers = {
+        "Accept": "application/json",
+        "username": "testdemo",
+        "password": "test%#de23@msdao",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.request("POST", url, json=payload, headers=headers)
+    data = response.json()
+    token = data['id_token']
+    return token
+
+
 def paymentMethod(request):
     if request.method == 'POST':
-        post_text = request.POST.get('the_post')
-        url = "https://checkout.sandbox.bka.sh/v1.2.0-beta/checkout/token/grant"
+        global token
+        token = getToken()
+        return HttpResponse(token)
 
-        payload = {
-            "app_key": "5nej5keguopj928ekcj3dne8p",
-            "app_secret": "1honf6u1c56mqcivtc9ffl960slp4v2756jle5925nbooa46ch62"
-        }
-        headers = {
-            "Accept": "application/json",
-            "username": "testdemo",
-            "password": "test%#de23@msdao",
-            "Content-Type": "application/json"
-        }
 
-        response = requests.request("POST", url, json=payload, headers=headers)
-        data = response.json()
-        token = data['id_token']
-        return HttpResponse(post_text)
+def paymentCreate(request):
+    global token, paymentID
+    # payment create
+    url = "https://checkout.sandbox.bka.sh/v1.2.0-beta/checkout/payment/create"
+
+    payload = {
+        "amount": "90",
+        "currency": "BDT",
+        "intent": "sale",
+        "merchantInvoiceNumber": "202098957723"
+    }
+    headers = {
+        "Accept": "application/json",
+        "X-APP-Key": "5nej5keguopj928ekcj3dne8p",
+        "Content-Type": "application/json",
+        "Authorization": token
+    }
+
+    response = requests.request("POST", url, json=payload, headers=headers)
+
+    return HttpResponse(response)
+
+
+def executePayment(request):
+    url = "https://checkout.sandbox.bka.sh/v1.2.0-beta/checkout/payment/execute?paymentID=" + paymentID
+
+    headers = {
+        "Accept": "application/json",
+        "X-APP-Key": "5nej5keguopj928ekcj3dne8p",
+        "Content-Type": "application/json",
+        "Authorization": token
+    }
+
+    response = requests.request("POST", url, headers=headers)
+
+    return HttpResponse(response)
